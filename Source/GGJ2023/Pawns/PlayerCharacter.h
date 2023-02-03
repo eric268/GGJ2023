@@ -49,7 +49,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute Ratios")
 		float cameraBoomToSizeRatio = 6.0f;
 	
-
+	void OnObjectEatten(float val);
 private:
 
 	void Jump();
@@ -58,10 +58,10 @@ private:
 	void TurnAtRate(float Rate);
 	void InitalizeComponents();
 
-	void OnObjectEatten(float val);
 	void UpdateCameraBoom(float val);
 	void UpdateSpeed(float val);
 	void UpdateColliderSize(float val);
+	void UpdateMeshSize(float val);
 
 	UFUNCTION()
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);

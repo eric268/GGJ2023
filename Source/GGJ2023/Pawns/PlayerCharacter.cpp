@@ -8,6 +8,8 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "../Misc/HelperFunctions.h"
+#include "../Actor/ConsumableObject.h"
+#include "../LatentActions/UpdateSizeLatentAction.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -28,8 +30,6 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	OnObjectEatten(size + DeltaTime * 3);
-
 }
 
 // Called to bind functionality to input
@@ -94,6 +94,13 @@ void APlayerCharacter::OnObjectEatten(float val)
 	size = val;
 	UpdateColliderSize(size);
 	UpdateSpeed(size);
+	UpdateMeshSize(size);
+}
+
+void APlayerCharacter::UpdateMeshSize(float val)
+{
+	float s = size * sizeToScaleRatio;
+	GetMesh()->SetRelativeScale3D(FVector(s, s, s));
 }
 
 void APlayerCharacter::UpdateColliderSize(float val)
@@ -115,4 +122,27 @@ void APlayerCharacter::UpdateCameraBoom(float val)
 void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	PRINT("HIT SOMETHING");
+	auto potentialConsumableObject = Cast<AConsumableObject>(OtherActor);
+	if (potentialConsumableObject)
+	{
+		if (size < potentialConsumableObject->currentSize)
+		{
+			//Potentially decrease player size
+
+			//Add force to repel player
+			FVector v = GetVelocity();
+			v.Normalize();
+			v = FVector(-v.X, -v.Y, v.Z);
+			LaunchCharacter(v * potentialConsumableObject->launchFactor, true, true);
+		}
+		else
+		{
+			//Start eat/grow functionality
+			GetWorld()->GetLatentActionManager().AddNewAction(this, 1, new UpdatePlayerSizeLatentAction(1, this, 
+				GetWorld()->GetDeltaSeconds(), 1.0f, potentialConsumableObject->sizeChangeOnPlayer));
+			if (!OtherActor->IsPendingKill())
+				OtherActor->Destroy();
+			//Start destruction or destory object
+		}
+	}
 }
