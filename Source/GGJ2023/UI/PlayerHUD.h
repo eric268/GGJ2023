@@ -23,7 +23,7 @@ public:
 	TSubclassOf<UUserWidget> sizeBarClass;
 	UUserWidget* sizeBarWidget;
 
-	TSubclassOf<UDialogueWidget> dialogueWidgetClass;
+	TSubclassOf<UUserWidget> dialogueWidgetClass;
 	UDialogueWidget* dialogueWidget;
 	APlayerCharacter* playerCharacter;
 

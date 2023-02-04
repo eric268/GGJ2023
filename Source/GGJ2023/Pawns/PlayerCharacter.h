@@ -39,6 +39,8 @@ public:
 
 	//Attributes
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+		float maxSize = 1000.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float size = 50.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float turnRate = 25.0f;
@@ -71,7 +73,7 @@ private:
 
 	FVector previousVelocity;
 	bool isGrounded = true;
-
+	int latentActionID = 0;
 	void Jump();
 	void MoveForward(float val);
 	void MoveRight(float val);
