@@ -33,9 +33,4 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float launchFactor = 100.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Components")
-		UStaticMeshComponent* staticMeshComponent;
-	UPROPERTY(EditAnywhere, Category = "Components")
-		USceneComponent* sceneComponent;
-
 };

@@ -30,6 +30,7 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	previousVelocity = GetVelocity();
 }
 
 // Called to bind functionality to input
@@ -40,6 +41,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &APlayerCharacter::TurnAtRate);
+	PlayerInputComponent->BindAxis("Look", this, &APlayerCharacter::LookUpAt);
 }
 
 void APlayerCharacter::Jump()
@@ -51,12 +53,6 @@ void APlayerCharacter::MoveForward(float val)
 {
 	if ((Controller != nullptr) && (val != 0.0f))
 	{
-		// find out which way is forward
-		//const FRotator Rotation = Controller->GetControlRotation();
-		//const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		//// get forward vector
-		//const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(GetActorForwardVector(), val);
 	}
 }
@@ -81,18 +77,26 @@ void APlayerCharacter::TurnAtRate(float Rate)
 	AddControllerYawInput(Rate * turnRate * GetWorld()->GetDeltaSeconds());
 }
 
+void APlayerCharacter::LookUpAt(float Rate)
+{
+	// calculate delta for this frame from the rate information
+	AddControllerPitchInput(Rate * lookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
 void APlayerCharacter::InitalizeComponents()
 {
 	springArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
 	springArmComponent->SetupAttachment(RootComponent);
+	springArmComponent->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 	cameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	cameraComponent->SetupAttachment(springArmComponent, USpringArmComponent::SocketName);
+	cameraComponent->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 }
 
 void APlayerCharacter::OnObjectEatten(float val)
 {
 	size = val;
-	//UpdateColliderSize(size);
+	UpdateColliderSize(val);
 	UpdateSpeed(size);
 	UpdateMeshSize(size);
 	UpdateCameraBoom(val);
@@ -101,8 +105,8 @@ void APlayerCharacter::OnObjectEatten(float val)
 void APlayerCharacter::UpdateMeshSize(float val)
 {
 	float s = size * sizeToScaleRatio;
-	SetActorScale3D(FVector(s, s, s));
-	//()->SetRelativeScale3D
+	GetMesh()->SetRelativeScale3D(FVector(s, s, s));
+	
 }
 
 void APlayerCharacter::UpdateColliderSize(float val)
@@ -123,18 +127,22 @@ void APlayerCharacter::UpdateCameraBoom(float val)
 
 void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	PRINT("HIT SOMETHING");
 	auto potentialConsumableObject = Cast<AConsumableObject>(OtherActor);
 	if (potentialConsumableObject)
 	{
 		if (size < potentialConsumableObject->currentSize)
 		{
 			//Potentially decrease player size
-
+			FVector prevV = previousVelocity;
 			//Add force to repel player
+			FVector n = Hit.ImpactNormal;
+			n.Normalize();
 			FVector v = GetVelocity();
 			v.Normalize();
-			v = FVector(-v.X, -v.Y, v.Z);
+			FVector u = FVector::DotProduct(v,n) * n;
+			u.Normalize();
+			FVector w = v - u;
+			v = w - u;
 			LaunchCharacter(v * potentialConsumableObject->launchFactor, true, true);
 		}
 		else
