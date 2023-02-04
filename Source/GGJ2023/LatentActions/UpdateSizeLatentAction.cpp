@@ -11,7 +11,8 @@ UpdatePlayerSizeLatentAction::UpdatePlayerSizeLatentAction(int id, APlayerCharac
 void UpdatePlayerSizeLatentAction::UpdateOperation(FLatentResponse& Response)
 {
 	timeCounter += deltaTime;
-	playerCharacter->OnObjectEatten(playerCharacter->size + size * deltaTime);
+	float dSize = size * deltaTime;
+	playerCharacter->OnObjectEatten(playerCharacter->size + dSize);
 	if (timeCounter >= totalTime)
 	{
 		Response.DoneIf(true);

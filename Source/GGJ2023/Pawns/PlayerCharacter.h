@@ -41,21 +41,26 @@ public:
 		float size = 50.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float turnRate = 25.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+		float lookUpRate = 25.0f;
 	//Attribute Ratios
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute Ratios")
 		float sizeToScaleRatio = 0.02f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute Ratios")
 		float speedToSizeRatio = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute Ratios")
-		float cameraBoomToSizeRatio = 6.0f;
+		float cameraBoomToSizeRatio = 10.0f;
 	
 	void OnObjectEatten(float val);
 private:
+
+	FVector previousVelocity;
 
 	void Jump();
 	void MoveForward(float val);
 	void MoveRight(float val);
 	void TurnAtRate(float Rate);
+	void LookUpAt(float val);
 	void InitalizeComponents();
 
 	void UpdateCameraBoom(float val);

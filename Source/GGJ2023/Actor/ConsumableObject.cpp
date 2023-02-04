@@ -10,10 +10,6 @@ AConsumableObject::AConsumableObject()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	sceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Component"));
-	RootComponent = sceneComponent;
-	staticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
-	staticMeshComponent->SetupAttachment(sceneComponent);
 }
 
 // Called when the game starts or when spawned
