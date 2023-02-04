@@ -92,15 +92,17 @@ void APlayerCharacter::InitalizeComponents()
 void APlayerCharacter::OnObjectEatten(float val)
 {
 	size = val;
-	UpdateColliderSize(size);
+	//UpdateColliderSize(size);
 	UpdateSpeed(size);
 	UpdateMeshSize(size);
+	UpdateCameraBoom(val);
 }
 
 void APlayerCharacter::UpdateMeshSize(float val)
 {
 	float s = size * sizeToScaleRatio;
-	GetMesh()->SetRelativeScale3D(FVector(s, s, s));
+	SetActorScale3D(FVector(s, s, s));
+	//()->SetRelativeScale3D
 }
 
 void APlayerCharacter::UpdateColliderSize(float val)
