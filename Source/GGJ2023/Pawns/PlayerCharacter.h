@@ -55,10 +55,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute Ratios")
 		float groundedLaunchRatio = 5.0f;
 
+	//Camera Attributes
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Attributes")
 		float minPitch = -90.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Attributes")
 		float maxPitch = 0.0f;
+
+	//Animation Attributes
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		float rotationSpeed = 1.0f;
 
 	
 	void OnObjectEatten(float val);

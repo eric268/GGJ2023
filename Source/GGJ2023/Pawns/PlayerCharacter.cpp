@@ -55,6 +55,9 @@ void APlayerCharacter::MoveForward(float val)
 	if ((Controller != nullptr) && (val != 0.0f))
 	{
 		AddMovementInput(GetActorForwardVector(), val);
+		float rot = val * rotationSpeed * GetWorld()->GetDeltaSeconds();
+		DEBUGMESSAGE("Rot: %f", rot)
+		GetMesh()->AddRelativeRotation(FQuat(0, rot, 0, 1));
 	}
 }
 void APlayerCharacter::MoveRight(float val)
@@ -69,6 +72,8 @@ void APlayerCharacter::MoveRight(float val)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, val);
+		float rot = -val * rotationSpeed * GetWorld()->GetDeltaSeconds();
+		GetMesh()->AddRelativeRotation(FQuat(rot, 0, 0, 1));
 	}
 }
 
