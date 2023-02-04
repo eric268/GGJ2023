@@ -9,6 +9,7 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UStaticMeshComponent;
+class AConsumableObject;
 
 UCLASS()
 class GGJ2023_API APlayerCharacter : public ACharacter
@@ -43,6 +44,7 @@ public:
 		float turnRate = 25.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float lookUpRate = 25.0f;
+
 	//Attribute Ratios
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute Ratios")
 		float sizeToScaleRatio = 0.02f;
@@ -50,11 +52,25 @@ public:
 		float speedToSizeRatio = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute Ratios")
 		float cameraBoomToSizeRatio = 10.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute Ratios")
+		float groundedLaunchRatio = 5.0f;
+
+	//Camera Attributes
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Attributes")
+		float minPitch = -90.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Attributes")
+		float maxPitch = 0.0f;
+
+	//Animation Attributes
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		float rotationSpeed = 1.0f;
+
 	
 	void OnObjectEatten(float val);
 private:
 
 	FVector previousVelocity;
+	bool isGrounded = true;
 
 	void Jump();
 	void MoveForward(float val);
@@ -67,6 +83,7 @@ private:
 	void UpdateSpeed(float val);
 	void UpdateColliderSize(float val);
 	void UpdateMeshSize(float val);
+	void CalculateBounce(AConsumableObject* consumableObject, const FVector normal);
 
 	UFUNCTION()
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);

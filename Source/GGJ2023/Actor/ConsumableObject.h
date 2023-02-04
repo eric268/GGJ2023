@@ -29,8 +29,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float currentSize = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
-		float sizeChangeOnPlayer = 10.0f;
+		float sizeChangeOnConsumed = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float launchFactor = 100.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+		float sizeDecreaseRatio = 0.1f;
 
 };
