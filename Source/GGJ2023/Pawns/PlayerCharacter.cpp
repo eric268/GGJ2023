@@ -31,6 +31,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	previousVelocity = GetVelocity();
+	isGrounded = GetCharacterMovement()->IsMovingOnGround();
 }
 
 // Called to bind functionality to input
@@ -54,6 +55,9 @@ void APlayerCharacter::MoveForward(float val)
 	if ((Controller != nullptr) && (val != 0.0f))
 	{
 		AddMovementInput(GetActorForwardVector(), val);
+		float rot = val * rotationSpeed * GetWorld()->GetDeltaSeconds();
+		DEBUGMESSAGE("Rot: %f", rot)
+		GetMesh()->AddRelativeRotation(FQuat(0, rot, 0, 1));
 	}
 }
 void APlayerCharacter::MoveRight(float val)
@@ -68,6 +72,8 @@ void APlayerCharacter::MoveRight(float val)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, val);
+		float rot = -val * rotationSpeed * GetWorld()->GetDeltaSeconds();
+		GetMesh()->AddRelativeRotation(FQuat(rot, 0, 0, 1));
 	}
 }
 
@@ -90,7 +96,7 @@ void APlayerCharacter::InitalizeComponents()
 	springArmComponent->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 	cameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	cameraComponent->SetupAttachment(springArmComponent, USpringArmComponent::SocketName);
-	cameraComponent->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	cameraComponent->bUsePawnControlRotation = false; // Rotate the arm based on the controller
 }
 
 void APlayerCharacter::OnObjectEatten(float val)
@@ -125,6 +131,27 @@ void APlayerCharacter::UpdateCameraBoom(float val)
 	springArmComponent->TargetArmLength = val * cameraBoomToSizeRatio;
 }
 
+void APlayerCharacter::CalculateBounce(AConsumableObject* consumableObject, const FVector normal)
+{
+	//Add force to repel player
+	FVector n = normal;
+	n.Normalize();
+	FVector v = previousVelocity;
+	v.Normalize();
+	FVector u = FVector::DotProduct(v, n) * n;
+	u.Normalize();
+	FVector w = v - u;
+	v = w - u;
+	if (isGrounded)
+	{
+		LaunchCharacter(v * consumableObject->launchFactor * groundedLaunchRatio, true, true);
+	}
+	else
+	{
+		LaunchCharacter(v * consumableObject->launchFactor, true, true);
+	}
+}
+
 void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	auto potentialConsumableObject = Cast<AConsumableObject>(OtherActor);
@@ -132,24 +159,15 @@ void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 	{
 		if (size < potentialConsumableObject->currentSize)
 		{
-			//Potentially decrease player size
-			FVector prevV = previousVelocity;
-			//Add force to repel player
-			FVector n = Hit.ImpactNormal;
-			n.Normalize();
-			FVector v = GetVelocity();
-			v.Normalize();
-			FVector u = FVector::DotProduct(v,n) * n;
-			u.Normalize();
-			FVector w = v - u;
-			v = w - u;
-			LaunchCharacter(v * potentialConsumableObject->launchFactor, true, true);
+			CalculateBounce(potentialConsumableObject, Hit.ImpactNormal);
+			GetWorld()->GetLatentActionManager().AddNewAction(this, 1, new UpdatePlayerSizeLatentAction(1, this,
+				GetWorld()->GetDeltaSeconds(), 1.0f,size *  potentialConsumableObject->sizeDecreaseRatio * -1));
 		}
 		else
 		{
 			//Start eat/grow functionality
 			GetWorld()->GetLatentActionManager().AddNewAction(this, 1, new UpdatePlayerSizeLatentAction(1, this, 
-				GetWorld()->GetDeltaSeconds(), 1.0f, potentialConsumableObject->sizeChangeOnPlayer));
+				GetWorld()->GetDeltaSeconds(), 1.0f, potentialConsumableObject->sizeChangeOnConsumed));
 			if (!OtherActor->IsPendingKill())
 				OtherActor->Destroy();
 			//Start destruction or destory object
