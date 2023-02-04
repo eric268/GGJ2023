@@ -10,6 +10,10 @@ class USpringArmComponent;
 class UCameraComponent;
 class UStaticMeshComponent;
 class AConsumableObject;
+class APlayerHUD;
+class APC;
+class UDialogueWidget;
+class GameDialogue;
 
 UCLASS()
 class GGJ2023_API APlayerCharacter : public ACharacter
@@ -70,10 +74,15 @@ public:
 	
 	void OnObjectEatten(float val);
 private:
-
+	GameDialogue* loadedDialogue;
+	UDialogueWidget* dialogueWidget;
+	APC* playerController;
+	APlayerHUD* playerHUD;
 	FVector previousVelocity;
 	bool isGrounded = true;
 	int latentActionID = 0;
+
+	void InitalizePlayer();
 	void Jump();
 	void MoveForward(float val);
 	void MoveRight(float val);

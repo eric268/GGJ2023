@@ -28,21 +28,11 @@ void APlayerHUD::BeginPlay()
 	playerCharacter = Cast<APlayerCharacter>(GetOwningPawn());
 	if (!playerCharacter)
 		PRINT("Could not find player character PlayerHUD.cpp");
-	if (dialogueWidgetClass)
+	
+	UDialogueWidget* dWidget = GetDialogueWidget();
+	if (dWidget)
 	{
-		dialogueWidget = CreateWidget<UDialogueWidget>(GetWorld(), dialogueWidgetClass);
-		if (dialogueWidget)
-		{
-			dialogueWidget->AddToViewport(0);
-		}
-		else
-		{
-			PRINT("Error creating dialogue widget");
-		}
-	}
-	else
-	{
-		PRINT("Dialogue widget class not found");
+		dWidget->AddToViewport(0);
 	}
 	if (sizeBarClass)
 	{
@@ -60,8 +50,33 @@ void APlayerHUD::BeginPlay()
 	{
 		PRINT("Size bar widget class not found");
 	}
-
-
-
 }
 
+UDialogueWidget* APlayerHUD::GetDialogueWidget()
+{
+	if (dialogueWidget)
+	{
+		return dialogueWidget;
+	}
+	else
+	{
+		if (dialogueWidgetClass)
+		{
+			dialogueWidget = CreateWidget<UDialogueWidget>(GetWorld(), dialogueWidgetClass);
+			if (dialogueWidget)
+			{
+				return dialogueWidget;
+			}
+			else
+			{
+				PRINT("Error creating dialogue widget");
+				return nullptr;
+			}
+		}
+		else
+		{
+			PRINT("Dialogue widget class not found");
+			return nullptr;
+		}
+	}
+}

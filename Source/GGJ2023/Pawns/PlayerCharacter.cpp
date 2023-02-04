@@ -10,6 +10,11 @@
 #include "../Misc/HelperFunctions.h"
 #include "../Actor/ConsumableObject.h"
 #include "../LatentActions/UpdateSizeLatentAction.h"
+#include "../UI/PlayerHUD.h"
+#include "Kismet/GameplayStatics.h"
+#include "../Controllers/PC.h"
+#include "../UI/DialogueWidget.h"
+#include "../Dialogue/GameDialogue.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -23,7 +28,15 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	InitalizePlayer();
+	loadedDialogue = new GameDialogue();
+	for (int i = 0; i < loadedDialogue->loadedDialogue.Num(); i++)
+	{
+		dialogueWidget->AddDialogueText(loadedDialogue->loadedDialogue[i]);
+	}
+	dialogueWidget->DisplayDialogue();
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &APlayerCharacter::OnHit);
+
 }
 
 // Called every frame
@@ -44,6 +57,30 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis("Turn", this, &APlayerCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("Look", this, &APlayerCharacter::LookUpAt);
 }
+void APlayerCharacter::InitalizePlayer()
+{
+	playerController = Cast<APC>(UGameplayStatics::GetPlayerController(this, 0));
+	if (playerController)
+	{
+		playerHUD = Cast<APlayerHUD>(playerController->GetHUD());
+		if (playerHUD)
+		{
+			dialogueWidget = playerHUD->GetDialogueWidget();
+			if (!dialogueWidget)
+			{
+				PRINT("Error getting dialogue widget in PlayerCharacter.cpp");
+			}
+		}
+		else
+		{
+			PRINT("Error getting player HUD in PlayerCharacter.cpp");
+		}
+	}
+	else
+	{
+		PRINT("Error getting player controller in PlayerCharacter.cpp");
+	}
+}
 
 void APlayerCharacter::Jump()
 {
@@ -56,7 +93,6 @@ void APlayerCharacter::MoveForward(float val)
 	{
 		AddMovementInput(GetActorForwardVector(), val);
 		float rot = val * rotationSpeed * GetWorld()->GetDeltaSeconds();
-		DEBUGMESSAGE("Rot: %f", rot)
 		GetMesh()->AddRelativeRotation(FQuat(0, rot, 0, 1));
 	}
 }

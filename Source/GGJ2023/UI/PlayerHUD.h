@@ -27,4 +27,6 @@ public:
 	UDialogueWidget* dialogueWidget;
 	APlayerCharacter* playerCharacter;
 
+	UDialogueWidget* GetDialogueWidget();
+
 };
