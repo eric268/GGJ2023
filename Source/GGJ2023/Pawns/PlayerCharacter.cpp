@@ -160,13 +160,13 @@ void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 		if (size < potentialConsumableObject->currentSize)
 		{
 			CalculateBounce(potentialConsumableObject, Hit.ImpactNormal);
-			GetWorld()->GetLatentActionManager().AddNewAction(this, 1, new UpdatePlayerSizeLatentAction(1, this,
+			GetWorld()->GetLatentActionManager().AddNewAction(this, latentActionID++, new UpdatePlayerSizeLatentAction(1, this,
 				GetWorld()->GetDeltaSeconds(), 1.0f,size *  potentialConsumableObject->sizeDecreaseRatio * -1));
 		}
 		else
 		{
 			//Start eat/grow functionality
-			GetWorld()->GetLatentActionManager().AddNewAction(this, 1, new UpdatePlayerSizeLatentAction(1, this, 
+			GetWorld()->GetLatentActionManager().AddNewAction(this, latentActionID++, new UpdatePlayerSizeLatentAction(1, this,
 				GetWorld()->GetDeltaSeconds(), 1.0f, potentialConsumableObject->sizeChangeOnConsumed));
 			if (!OtherActor->IsPendingKill())
 				OtherActor->Destroy();
