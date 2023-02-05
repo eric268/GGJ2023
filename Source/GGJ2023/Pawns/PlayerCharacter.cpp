@@ -34,7 +34,7 @@ void APlayerCharacter::BeginPlay()
 	{
 		dialogueWidget->AddDialogueText(loadedDialogue->loadedDialogue[i]);
 	}
-	dialogueWidget->DisplayDialogue();
+	dialogueWidget->StartDialogueSystem();
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &APlayerCharacter::OnHit);
 
 }
@@ -198,10 +198,15 @@ void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 	{
 		if (size < potentialConsumableObject->currentSize)
 		{
-			float decreaseValue = FMath::Min(-minimumSizeDecreaseValue, size * potentialConsumableObject->sizeDecreaseRatio * -1);
-			CalculateBounce(potentialConsumableObject, Hit.ImpactNormal);
-			GetWorld()->GetLatentActionManager().AddNewAction(this, latentActionID++, new UpdatePlayerSizeLatentAction(1, this,
-				GetWorld()->GetDeltaSeconds(), 1.0f, decreaseValue));
+			if (!recentlyLostSize)
+			{
+				recentlyLostSize = true;
+				GetWorldTimerManager().SetTimer(recentlyLostSizeHandle, this, &APlayerCharacter::UpdateRecentlyLostSize, 0.1f, false);
+				float decreaseValue = FMath::Min(-minimumSizeDecreaseValue, size * potentialConsumableObject->sizeDecreaseRatio * -1);
+				CalculateBounce(potentialConsumableObject, Hit.ImpactNormal);
+				GetWorld()->GetLatentActionManager().AddNewAction(this, latentActionID++, new UpdatePlayerSizeLatentAction(1, this,
+					GetWorld()->GetDeltaSeconds(), 1.0f, decreaseValue));
+			}
 		}
 		else
 		{
@@ -213,4 +218,9 @@ void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 			//Start destruction or destory object
 		}
 	}
+}
+
+void APlayerCharacter::UpdateRecentlyLostSize()
+{
+	recentlyLostSize = false;
 }

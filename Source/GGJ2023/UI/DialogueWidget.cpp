@@ -27,10 +27,17 @@ void UDialogueWidget::AddDialogueText(FString text)
 	mDialogueContainer.Enqueue(text);
 }
 
+void UDialogueWidget::StartDialogueSystem()
+{
+	if (!playerCharacter || isRunning)
+		return;
+	else
+		DisplayDialogue();
+}
+
 void UDialogueWidget::DisplayDialogue()
 {
-	if (!playerCharacter)
-		return;
+	isRunning = true;
 	if (mDialogueContainer.IsEmpty())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(mIntroHandle);
@@ -85,6 +92,10 @@ void UDialogueWidget::FadeOutText()
 		if (!mDialogueContainer.IsEmpty())
 		{
 			GetWorld()->GetTimerManager().SetTimer(mIntroHandle, this, &UDialogueWidget::DisplayDialogue, 0.25f, false);
+		}
+		else
+		{
+			isRunning = false;
 		}
 	}
 }

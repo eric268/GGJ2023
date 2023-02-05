@@ -7,7 +7,10 @@ UpdatePlayerSizeLatentAction::UpdatePlayerSizeLatentAction(int id, APlayerCharac
 	totalTime(time),
 	size(sizeIncrease),
 	timeCounter(0.0f)
-{}
+{
+	if (sizeIncrease < 0)
+		UE_LOG(LogTemp, Warning, TEXT("Player losing size"));
+}
 void UpdatePlayerSizeLatentAction::UpdateOperation(FLatentResponse& Response)
 {
 	timeCounter += deltaTime;

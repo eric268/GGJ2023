@@ -36,18 +36,20 @@ public:
 	float mFadeSpeed = 0.025f;
 	float mTextDisplayTimer = 2.0f;
 
-
+	bool isRunning = false;
 	int mLetterCounter = 0;
+
+	void AddDialogueText(FString text);
+	void StartDialogueSystem();
+	UFUNCTION(BlueprintImplementableEvent)
+		void UpdateTextOpacity();
+	
+private:
+	void DisplayDialogue();
 	void ClearText();
 	void AnimateText(FString newText = "");
 	void FadeInText();
 	void FadeOutText();
 	void BeingTextFadeout();
 	void UnPauseSim();
-	void AddDialogueText(FString text);
-	void DisplayDialogue();
-
-	UFUNCTION(BlueprintImplementableEvent)
-		void UpdateTextOpacity();
-	
 };

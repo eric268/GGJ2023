@@ -76,6 +76,9 @@ public:
 	
 	void OnObjectEatten(float val);
 private:
+	void UpdateRecentlyLostSize();
+	FTimerHandle recentlyLostSizeHandle;
+	bool recentlyLostSize = false;
 	GameDialogue* loadedDialogue;
 	UDialogueWidget* dialogueWidget;
 	APC* playerController;
