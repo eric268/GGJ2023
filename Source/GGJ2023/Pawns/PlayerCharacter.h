@@ -50,6 +50,8 @@ public:
 		float turnRate = 25.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float lookUpRate = 25.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+		float minimumSizeDecreaseValue = 2.0f;
 
 	//Attribute Ratios
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute Ratios")

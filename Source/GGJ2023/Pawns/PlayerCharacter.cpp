@@ -45,6 +45,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	previousVelocity = GetVelocity();
 	isGrounded = GetCharacterMovement()->IsMovingOnGround();
+	DEBUGMESSAGE("Player Size: %f", size);
 }
 
 // Called to bind functionality to input
@@ -178,7 +179,9 @@ void APlayerCharacter::CalculateBounce(AConsumableObject* consumableObject, cons
 	u.Normalize();
 	FVector w = v - u;
 	v = w - u;
-	if (isGrounded)
+	v.Z = FMath::Abs(v.Z);
+
+	if (isGrounded && normal != FVector(0,0,1))
 	{
 		LaunchCharacter(v * consumableObject->launchFactor * groundedLaunchRatio, true, true);
 	}
@@ -195,9 +198,10 @@ void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 	{
 		if (size < potentialConsumableObject->currentSize)
 		{
+			float decreaseValue = FMath::Min(-minimumSizeDecreaseValue, size * potentialConsumableObject->sizeDecreaseRatio * -1);
 			CalculateBounce(potentialConsumableObject, Hit.ImpactNormal);
 			GetWorld()->GetLatentActionManager().AddNewAction(this, latentActionID++, new UpdatePlayerSizeLatentAction(1, this,
-				GetWorld()->GetDeltaSeconds(), 1.0f,size *  potentialConsumableObject->sizeDecreaseRatio * -1));
+				GetWorld()->GetDeltaSeconds(), 1.0f, decreaseValue));
 		}
 		else
 		{
