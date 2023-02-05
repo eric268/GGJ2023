@@ -31,10 +31,10 @@ APlayerHUD::APlayerHUD()
 void APlayerHUD::BeginPlay()
 {
 	Super::BeginPlay();
+	UWidgetLayoutLibrary::RemoveAllWidgets(this);
 	playerCharacter = Cast<APlayerCharacter>(GetOwningPawn());
 	if (!playerCharacter)
 		PRINT("Could not find player character PlayerHUD.cpp");
-	
 	UDialogueWidget* dWidget = GetDialogueWidget();
 	if (dWidget)
 	{
