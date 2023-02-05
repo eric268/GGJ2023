@@ -51,7 +51,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float lookUpRate = 25.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
-		float minimumSizeDecreaseValue = 2.0f;
+		float minimumSizeDecreaseValue = 5.0f;
 
 	//Attribute Ratios
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute Ratios")
@@ -73,7 +73,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		float rotationSpeed = 1.0f;
 
-	
+	APlayerHUD* playerHUD;
 	void OnObjectEatten(float val);
 private:
 	void UpdateRecentlyLostSize();
@@ -82,7 +82,7 @@ private:
 	GameDialogue* loadedDialogue;
 	UDialogueWidget* dialogueWidget;
 	APC* playerController;
-	APlayerHUD* playerHUD;
+
 	FVector previousVelocity;
 	bool isGrounded = true;
 	int latentActionID = 0;
@@ -101,6 +101,9 @@ private:
 	void UpdateMeshSize(float val);
 	void CalculateBounce(AConsumableObject* consumableObject, const FVector normal);
 	void OnCollision(AConsumableObject* consumableObject, const FVector normal);
+
+	UFUNCTION(BlueprintCallable)
+		void DisplayDialogue(FString text);
 
 	UFUNCTION()
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);

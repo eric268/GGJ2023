@@ -29,12 +29,6 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	InitalizePlayer();
-	loadedDialogue = new GameDialogue();
-	for (int i = 0; i < loadedDialogue->loadedDialogue.Num(); i++)
-	{
-		dialogueWidget->AddDialogueText(loadedDialogue->loadedDialogue[i]);
-	}
-	dialogueWidget->StartDialogueSystem();
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &APlayerCharacter::OnHit);
 	//GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnOverlapBegin);
 
@@ -80,6 +74,15 @@ void APlayerCharacter::InitalizePlayer()
 	else
 	{
 		PRINT("Error getting player controller in PlayerCharacter.cpp");
+	}
+}
+
+void APlayerCharacter::DisplayDialogue(FString text)
+{
+	if (dialogueWidget)
+	{
+		dialogueWidget->AddDialogueText(text);
+		dialogueWidget->StartDialogueSystem();
 	}
 }
 
