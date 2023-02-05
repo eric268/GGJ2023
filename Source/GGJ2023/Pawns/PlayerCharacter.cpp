@@ -36,6 +36,7 @@ void APlayerCharacter::BeginPlay()
 	}
 	dialogueWidget->StartDialogueSystem();
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &APlayerCharacter::OnHit);
+	//GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnOverlapBegin);
 
 }
 
@@ -45,7 +46,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	previousVelocity = GetVelocity();
 	isGrounded = GetCharacterMovement()->IsMovingOnGround();
-	DEBUGMESSAGE("Player Size: %f", size);
 }
 
 // Called to bind functionality to input
@@ -191,19 +191,16 @@ void APlayerCharacter::CalculateBounce(AConsumableObject* consumableObject, cons
 	}
 }
 
-void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void APlayerCharacter::OnCollision(AConsumableObject* consumableObject, const FVector normal)
 {
-	auto potentialConsumableObject = Cast<AConsumableObject>(OtherActor);
-	if (potentialConsumableObject)
-	{
-		if (size < potentialConsumableObject->currentSize)
+		if (size < consumableObject->currentSize)
 		{
 			if (!recentlyLostSize)
 			{
 				recentlyLostSize = true;
 				GetWorldTimerManager().SetTimer(recentlyLostSizeHandle, this, &APlayerCharacter::UpdateRecentlyLostSize, 0.1f, false);
-				float decreaseValue = FMath::Min(-minimumSizeDecreaseValue, size * potentialConsumableObject->sizeDecreaseRatio * -1);
-				CalculateBounce(potentialConsumableObject, Hit.ImpactNormal);
+				float decreaseValue = FMath::Min(-minimumSizeDecreaseValue, size * consumableObject->sizeDecreaseRatio * -1);
+				CalculateBounce(consumableObject, normal);
 				GetWorld()->GetLatentActionManager().AddNewAction(this, latentActionID++, new UpdatePlayerSizeLatentAction(1, this,
 					GetWorld()->GetDeltaSeconds(), 1.0f, decreaseValue));
 			}
@@ -212,11 +209,30 @@ void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 		{
 			//Start eat/grow functionality
 			GetWorld()->GetLatentActionManager().AddNewAction(this, latentActionID++, new UpdatePlayerSizeLatentAction(1, this,
-				GetWorld()->GetDeltaSeconds(), 1.0f, potentialConsumableObject->sizeChangeOnConsumed));
-			if (!OtherActor->IsPendingKill())
-				OtherActor->Destroy();
+				GetWorld()->GetDeltaSeconds(), 1.0f, consumableObject->sizeChangeOnConsumed));
+			if (!consumableObject->IsPendingKill())
+				consumableObject->Destroy();
 			//Start destruction or destory object
 		}
+	
+}
+
+void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	auto potentialConsumableObject = Cast<AConsumableObject>(OtherActor);
+	if (potentialConsumableObject)
+	{
+		OnCollision(potentialConsumableObject, Hit.ImpactNormal);
+	}
+
+}
+
+void APlayerCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	auto potentialConsumableObject = Cast<AConsumableObject>(OtherActor);
+	if (potentialConsumableObject)
+	{
+		OnCollision(potentialConsumableObject, SweepResult.ImpactNormal);
 	}
 }
 
