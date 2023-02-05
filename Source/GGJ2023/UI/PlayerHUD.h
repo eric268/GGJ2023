@@ -22,11 +22,14 @@ public:
 	
 	TSubclassOf<UUserWidget> sizeBarClass;
 	UUserWidget* sizeBarWidget;
+	TSubclassOf<UUserWidget> gameOverClass;
+	UUserWidget* gameOverWidget;
 
 	TSubclassOf<UUserWidget> dialogueWidgetClass;
 	UDialogueWidget* dialogueWidget;
 	APlayerCharacter* playerCharacter;
 
 	UDialogueWidget* GetDialogueWidget();
+	void OnGameOver();
 
 };
