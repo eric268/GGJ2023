@@ -10,6 +10,10 @@ class USpringArmComponent;
 class UCameraComponent;
 class UStaticMeshComponent;
 class AConsumableObject;
+class APlayerHUD;
+class APC;
+class UDialogueWidget;
+class GameDialogue;
 
 UCLASS()
 class GGJ2023_API APlayerCharacter : public ACharacter
@@ -39,11 +43,15 @@ public:
 
 	//Attributes
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+		float maxSize = 1000.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float size = 50.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float turnRate = 25.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 		float lookUpRate = 25.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+		float minimumSizeDecreaseValue = 5.0f;
 
 	//Attribute Ratios
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute Ratios")
@@ -65,13 +73,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		float rotationSpeed = 1.0f;
 
-	
+	APlayerHUD* playerHUD;
 	void OnObjectEatten(float val);
 private:
+	void UpdateRecentlyLostSize();
+	FTimerHandle recentlyLostSizeHandle;
+	bool recentlyLostSize = false;
+	GameDialogue* loadedDialogue;
+	UDialogueWidget* dialogueWidget;
+	APC* playerController;
 
 	FVector previousVelocity;
 	bool isGrounded = true;
+	int latentActionID = 0;
 
+	void InitalizePlayer();
 	void Jump();
 	void MoveForward(float val);
 	void MoveRight(float val);
@@ -84,7 +100,13 @@ private:
 	void UpdateColliderSize(float val);
 	void UpdateMeshSize(float val);
 	void CalculateBounce(AConsumableObject* consumableObject, const FVector normal);
+	void OnCollision(AConsumableObject* consumableObject, const FVector normal);
+
+	UFUNCTION(BlueprintCallable)
+		void DisplayDialogue(FString text);
 
 	UFUNCTION()
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	UFUNCTION()
+		void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

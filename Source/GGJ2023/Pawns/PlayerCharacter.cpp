@@ -10,6 +10,11 @@
 #include "../Misc/HelperFunctions.h"
 #include "../Actor/ConsumableObject.h"
 #include "../LatentActions/UpdateSizeLatentAction.h"
+#include "../UI/PlayerHUD.h"
+#include "Kismet/GameplayStatics.h"
+#include "../Controllers/PC.h"
+#include "../UI/DialogueWidget.h"
+#include "../Dialogue/GameDialogue.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -23,7 +28,10 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	InitalizePlayer();
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &APlayerCharacter::OnHit);
+	//GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnOverlapBegin);
+
 }
 
 // Called every frame
@@ -44,6 +52,39 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis("Turn", this, &APlayerCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("Look", this, &APlayerCharacter::LookUpAt);
 }
+void APlayerCharacter::InitalizePlayer()
+{
+	playerController = Cast<APC>(UGameplayStatics::GetPlayerController(this, 0));
+	if (playerController)
+	{
+		playerHUD = Cast<APlayerHUD>(playerController->GetHUD());
+		if (playerHUD)
+		{
+			dialogueWidget = playerHUD->GetDialogueWidget();
+			if (!dialogueWidget)
+			{
+				PRINT("Error getting dialogue widget in PlayerCharacter.cpp");
+			}
+		}
+		else
+		{
+			PRINT("Error getting player HUD in PlayerCharacter.cpp");
+		}
+	}
+	else
+	{
+		PRINT("Error getting player controller in PlayerCharacter.cpp");
+	}
+}
+
+void APlayerCharacter::DisplayDialogue(FString text)
+{
+	if (dialogueWidget)
+	{
+		dialogueWidget->AddDialogueText(text);
+		dialogueWidget->StartDialogueSystem();
+	}
+}
 
 void APlayerCharacter::Jump()
 {
@@ -56,7 +97,6 @@ void APlayerCharacter::MoveForward(float val)
 	{
 		AddMovementInput(GetActorForwardVector(), val);
 		float rot = val * rotationSpeed * GetWorld()->GetDeltaSeconds();
-		DEBUGMESSAGE("Rot: %f", rot)
 		GetMesh()->AddRelativeRotation(FQuat(0, rot, 0, 1));
 	}
 }
@@ -142,7 +182,9 @@ void APlayerCharacter::CalculateBounce(AConsumableObject* consumableObject, cons
 	u.Normalize();
 	FVector w = v - u;
 	v = w - u;
-	if (isGrounded)
+	v.Z = FMath::Abs(v.Z);
+
+	if (isGrounded && normal != FVector(0,0,1))
 	{
 		LaunchCharacter(v * consumableObject->launchFactor * groundedLaunchRatio, true, true);
 	}
@@ -152,25 +194,52 @@ void APlayerCharacter::CalculateBounce(AConsumableObject* consumableObject, cons
 	}
 }
 
+void APlayerCharacter::OnCollision(AConsumableObject* consumableObject, const FVector normal)
+{
+		if (size < consumableObject->currentSize)
+		{
+			if (!recentlyLostSize)
+			{
+				recentlyLostSize = true;
+				GetWorldTimerManager().SetTimer(recentlyLostSizeHandle, this, &APlayerCharacter::UpdateRecentlyLostSize, 0.1f, false);
+				float decreaseValue = FMath::Min(-minimumSizeDecreaseValue, size * consumableObject->sizeDecreaseRatio * -1);
+				CalculateBounce(consumableObject, normal);
+				GetWorld()->GetLatentActionManager().AddNewAction(this, latentActionID++, new UpdatePlayerSizeLatentAction(1, this,
+					GetWorld()->GetDeltaSeconds(), 1.0f, decreaseValue));
+			}
+		}
+		else
+		{
+			//Start eat/grow functionality
+			GetWorld()->GetLatentActionManager().AddNewAction(this, latentActionID++, new UpdatePlayerSizeLatentAction(1, this,
+				GetWorld()->GetDeltaSeconds(), 1.0f, consumableObject->sizeChangeOnConsumed));
+			if (!consumableObject->IsPendingKill())
+				consumableObject->Destroy();
+			//Start destruction or destory object
+		}
+	
+}
+
 void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	auto potentialConsumableObject = Cast<AConsumableObject>(OtherActor);
 	if (potentialConsumableObject)
 	{
-		if (size < potentialConsumableObject->currentSize)
-		{
-			CalculateBounce(potentialConsumableObject, Hit.ImpactNormal);
-			GetWorld()->GetLatentActionManager().AddNewAction(this, 1, new UpdatePlayerSizeLatentAction(1, this,
-				GetWorld()->GetDeltaSeconds(), 1.0f,size *  potentialConsumableObject->sizeDecreaseRatio * -1));
-		}
-		else
-		{
-			//Start eat/grow functionality
-			GetWorld()->GetLatentActionManager().AddNewAction(this, 1, new UpdatePlayerSizeLatentAction(1, this, 
-				GetWorld()->GetDeltaSeconds(), 1.0f, potentialConsumableObject->sizeChangeOnConsumed));
-			if (!OtherActor->IsPendingKill())
-				OtherActor->Destroy();
-			//Start destruction or destory object
-		}
+		OnCollision(potentialConsumableObject, Hit.ImpactNormal);
 	}
+
+}
+
+void APlayerCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	auto potentialConsumableObject = Cast<AConsumableObject>(OtherActor);
+	if (potentialConsumableObject)
+	{
+		OnCollision(potentialConsumableObject, SweepResult.ImpactNormal);
+	}
+}
+
+void APlayerCharacter::UpdateRecentlyLostSize()
+{
+	recentlyLostSize = false;
 }

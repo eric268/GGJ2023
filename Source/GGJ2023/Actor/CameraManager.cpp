@@ -20,13 +20,12 @@ void ACameraManager::BeginPlay()
 		{
 			ViewPitchMin = player->minPitch;
 			ViewPitchMax = player->maxPitch;
-			PRINT("SUCCESS");
 		}
 		else
-			PRINT("FAILED");
+			PRINT("Failed to find player character in CameraManager.cpp");
 	}
 	else
-		PRINT("FAILED");
+		PRINT("Failed to find player controller in CameraManager.cpp");
 
 
 }
